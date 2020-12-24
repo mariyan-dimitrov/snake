@@ -1,16 +1,14 @@
 import styled from "styled-components";
-import cn from "classnames";
 
 const Grid = ({ children, size = 10, snake }) => {
   const rowsAndColumns = [...Array(size)];
 
-  console.log(snake);
   const findSnakePosition = (column, row) => {
     for (let index = 0; index < snake.length; index++) {
-      const { isHead, x, y } = snake[index];
+      const { x, y } = snake[index];
 
       if (x === column && y === row) {
-        return isHead ? "is-head" : "is-body";
+        return index === 0 ? "is-head" : "is-body";
       }
     }
 
@@ -33,6 +31,8 @@ const Grid = ({ children, size = 10, snake }) => {
           </Column>
         ))}
       </InnerWrap>
+
+      <pre>{JSON.stringify(snake, 0, 2)}</pre>
     </div>
   );
 };
