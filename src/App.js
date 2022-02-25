@@ -1,35 +1,28 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import styled from "styled-components/macro";
 
-import Grid from "./components/common/Grid";
+import { keyMap, opositeDirectionMap } from "./components/constants/gameHelpers";
+import { useGameContext } from "./components/contexts/GameContext";
 import useEventListener from "./components/hooks/useEventListener";
-
-const gridSize = 10;
-
-const keyMap = {
-  ArrowLeft: "left",
-  ArrowDown: "down",
-  ArrowRight: "right",
-  ArrowUp: "up",
-};
-
-const opositeDirectionMap = {
-  left: "right",
-  right: "left",
-  up: "down",
-  down: "up",
-};
+import Settings from "./components/common/Settings";
+import Grid from "./components/common/Grid";
 
 const App = () => {
-  const initialHeadPos = {
-    x: Math.floor(gridSize / 2),
-    y: Math.floor(gridSize / 2),
-  };
+  const { gridSize, gameStarted, speed } = useGameContext();
+
+  const initialHeadPos = useMemo(
+    () => ({
+      x: Math.floor(gridSize / 2),
+      y: Math.floor(gridSize / 2),
+    }),
+    [gridSize]
+  );
 
   const [snake, setSnake] = useState([]);
   const moveIntervalRef = useRef();
   const headDirectionRef = useRef("right");
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     setSnake([
       {
         ...initialHeadPos,
@@ -44,7 +37,7 @@ const App = () => {
       },
     ]);
     headDirectionRef.current = "right";
-  };
+  }, [initialHeadPos]);
 
   const move = () => {
     setSnake(prevState => {
@@ -60,7 +53,7 @@ const App = () => {
       } else if (headDirectionRef.current === "up") {
         head = {
           ...head,
-          y: head.y + 1,
+          y: head.y - 1,
         };
       } else if (headDirectionRef.current === "right") {
         head = {
@@ -70,7 +63,7 @@ const App = () => {
       } else if (headDirectionRef.current === "down") {
         head = {
           ...head,
-          y: head.y - 1,
+          y: head.y + 1,
         };
       }
 
@@ -96,36 +89,45 @@ const App = () => {
     });
   };
 
-  useEventListener("keydown", e => {
-    const { code } = e;
-
+  useEventListener("keydown", ({ code }) => {
     // TODO: Rework this one
-    if (code === "Space") {
-      startGame();
-    }
-
-    if (code === "Enter") {
-      grow();
-    }
+    code === "Enter" && grow();
 
     const direction = keyMap[code];
+    const isOppositeDirection = opositeDirectionMap[direction] !== headDirectionRef.current;
 
-    if (direction && opositeDirectionMap[direction] !== headDirectionRef.current) {
+    if (direction && isOppositeDirection) {
       headDirectionRef.current = keyMap[code];
     }
   });
 
   useEffect(() => {
+    gameStarted && startGame();
+  }, [gameStarted, startGame]);
+
+  useEffect(() => {
     moveIntervalRef.current = setInterval(() => {
       snake.length && move();
-    }, 1000);
+    }, speed);
 
     return () => {
       clearInterval(moveIntervalRef.current);
     };
-  }, [snake.length]);
+  }, [snake.length, speed]);
 
-  return <Grid snake={snake} size={gridSize} />;
+  return (
+    <Wrap>
+      <Grid snake={snake} size={gridSize}>
+        {!gameStarted && <Settings />}
+      </Grid>
+    </Wrap>
+  );
 };
 
 export default App;
+
+const Wrap = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;

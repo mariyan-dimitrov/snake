@@ -1,8 +1,11 @@
 import ReactDOM from "react-dom";
-import App from './App';
+
+import GameContextProvider from "./components/contexts/GameContext";
+import App from "./App";
 
 ReactDOM.render(
-  <App />,
-  document.getElementById('root')
+  <GameContextProvider>
+    <App />
+  </GameContextProvider>,
+  document.getElementById("root")
 );
-
