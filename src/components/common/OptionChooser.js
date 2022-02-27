@@ -5,7 +5,9 @@ import cn from "classnames";
 import { useGameContext } from "../contexts/GameContext";
 
 const OptionChooser = ({ options, value, title }) => {
-  const { updateGameState } = useGameContext();
+  const { updateGameState, [value]: currentValue } = useGameContext();
+
+  // TODO: fix initial value
   const [index, setIndex] = useState(0);
   const optionsRef = useRef(options);
 
